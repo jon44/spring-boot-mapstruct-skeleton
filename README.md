@@ -14,6 +14,10 @@
 * Open `localhost:8080/api/swagger-ui.html`
 * If it works, you're good to go!
 
+### A Note on Spring
+
+For the Dependency Injection system to work, **all classes must be in a package that begins with* `cooksys`
+
 ### A Note On MapStruct
 
 The SBM-DTO project is intended to contain your Data Transfer Objects & Mappers. In order for MapStruct to work properly, you must follow a particular build process:
