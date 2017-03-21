@@ -16,7 +16,7 @@
 
 ### A Note on Spring
 
-For the Dependency Injection system to work, **all classes must be in a package that begins with* `cooksys`
+For the Dependency Injection system to work, **all classes must be in a package that begins with** `cooksys`
 
 ### A Note On MapStruct
 
