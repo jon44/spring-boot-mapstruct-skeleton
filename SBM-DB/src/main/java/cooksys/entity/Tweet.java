@@ -42,10 +42,10 @@ public class Tweet {
 	@OneToMany
 	private List<Hashtag> hashtags;
 	
-	@OneToMany(mappedBy = "isReplyTo")
+	@OneToMany
 	private List<Tweet> replies;
 	
-	@OneToMany(mappedBy = "repostOf")
+	@OneToMany
 	private List<Tweet> reposts;
 	
 	@ManyToMany

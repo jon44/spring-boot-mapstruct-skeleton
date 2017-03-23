@@ -2,13 +2,11 @@ package cooksys.dto;
 
 import java.sql.Timestamp;
 
-import cooksys.entity.User;
-
 public class TweetDto {
 	
 	private Integer id;
 	
-	private User author;
+	private UserDto author;
 	
 	private Timestamp posted;
 
@@ -20,11 +18,11 @@ public class TweetDto {
 		this.id = id;
 	}
 
-	public User getAuthor() {
+	public UserDto getAuthor() {
 		return author;
 	}
 
-	public void setAuthor(User author) {
+	public void setAuthor(UserDto author) {
 		this.author = author;
 	}
 

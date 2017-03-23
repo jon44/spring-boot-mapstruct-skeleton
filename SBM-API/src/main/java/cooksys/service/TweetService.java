@@ -1,11 +1,12 @@
 package cooksys.service;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 
 import org.springframework.stereotype.Service;
 
-import cooksys.dto.ReplyTweetDto;
-import cooksys.dto.SimpleTweetDto;
+import cooksys.dto.TweetDto;
 import cooksys.dto.TweetRequestDto;
 import cooksys.entity.Tweet;
 import cooksys.mapper.TweetMapper;
@@ -29,7 +30,7 @@ public class TweetService {
 		this.entityManager = entityManager;
 	}
 
-	public SimpleTweetDto postTweet(TweetRequestDto tweetRequestDto) {
+	public TweetDto postTweet(TweetRequestDto tweetRequestDto) {
 		
 		Tweet tweet = tweetMapper.toTweet(tweetRequestDto);
 		tweet.setDeleted(false);
@@ -39,19 +40,43 @@ public class TweetService {
 		return tweetMapper.toSimpleTweetDto(tweet);
 	}
 
-	public ReplyTweetDto postReplyTweet(TweetRequestDto tweetRequestDto, Long id) {
+	public TweetDto postReplyTweet(TweetRequestDto tweetRequestDto, Long id) {
 		
 		if(userRepository.existsByCredentials(tweetRequestDto.getCredentials())) {
 			
 			if(tweetRepository.existsByIdAndDeleted(id, false)) {
+				Tweet replyTo = tweetRepository.findOne(id);				
 				Tweet tweet = tweetMapper.toTweet(tweetRequestDto);
+				List<Tweet> replies = replyTo.getReplies();
+				replies.add(tweet);
+				replyTo.setReplies(replies);
 				tweet.setDeleted(false);
-				tweet.setIsReplyTo(tweetRepository.findOne(id));
+				tweet.setIsReplyTo(replyTo);
+				tweet = tweetRepository.save(tweet);
+				entityManager.detach(tweet);
+				tweet = tweetRepository.findOne(tweet.getId());
+				TweetDto tweetDto = tweetMapper.toReplyTweetDto(tweet);
+				return tweetDto;
 			} else {
 				//tweet does not exist
 			}
 		} else {
 			// credentials did not match
+		}
+		return null;
+	}
+
+	public TweetDto getTweet(Long id) {
+		
+		if(tweetRepository.existsByIdAndDeleted(id, false)){
+			Tweet tweet = tweetRepository.findOne(id);
+			if(tweet.getIsReplyTo() != null) {
+				
+			} else if(tweet.getRepostOf() != null) {
+				
+			} else {
+				
+			}
 		}
 		return null;
 	}
