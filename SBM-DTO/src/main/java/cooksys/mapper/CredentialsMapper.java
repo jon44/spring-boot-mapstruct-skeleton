@@ -17,9 +17,7 @@ public class CredentialsMapper {
 	
 	public User credentialsToUser(Credentials credentials) {
 		
-		System.out.println("credentialsMapper");
 		if(userRepository.existsByCredentials(credentials)) {
-			System.out.println("credentialsMapper - credentials validated");
 			return userRepository.findByCredentials(credentials);
 		}
 		return null;

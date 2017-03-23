@@ -3,6 +3,7 @@ package cooksys.entity;
 import java.sql.Timestamp;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -19,12 +20,12 @@ public class Tweet {
 
 	@Id
 	@GeneratedValue
-	private Integer id;
+	private Long id;
 	
 	@OneToOne
 	private User author;
 	
-	@NotNull
+	@Column(nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private Timestamp posted;
 	
 	@NotNull
@@ -59,11 +60,11 @@ public class Tweet {
 		
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

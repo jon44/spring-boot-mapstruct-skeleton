@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import cooksys.dto.ReplyTweetDto;
 import cooksys.dto.SimpleTweetDto;
 import cooksys.dto.TweetRequestDto;
 import cooksys.service.TweetService;
@@ -17,6 +18,11 @@ import cooksys.service.TweetService;
 public class TweetController {
 	
 	private TweetService tweetService;
+	
+	public TweetController(TweetService tweetService) {
+		super();
+		this.tweetService = tweetService;
+	}
 
 	@GetMapping
 	public void getTweets() {
@@ -25,7 +31,6 @@ public class TweetController {
 	
 	@PostMapping
 	public SimpleTweetDto postTweet(@RequestBody TweetRequestDto tweetRequestDto) {
-		System.out.println("post controller ---- " +tweetRequestDto.getCredentials().getUsername());
 		return tweetService.postTweet(tweetRequestDto);
 	}
 	
@@ -45,8 +50,8 @@ public class TweetController {
 	}
 	
 	@PostMapping("{id}/reply")
-	public void replyTweet(@PathVariable Long id) {
-		
+	public ReplyTweetDto replyTweet(@RequestBody TweetRequestDto tweetRequestDto, @PathVariable Long id) {
+		return tweetService.postReplyTweet(tweetRequestDto, id);
 	}
 	
 	@PostMapping("{id}/repost")
