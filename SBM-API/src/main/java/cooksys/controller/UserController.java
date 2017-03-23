@@ -1,6 +1,7 @@
 package cooksys.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,13 +54,13 @@ public class UserController {
 	}
 	
 	@PostMapping("@{username}/follow")
-	public void followUser(@PathVariable String username) {
-		
+	public void followUser(@RequestBody Credentials credentials, @PathVariable String username) {
+		userService.followUser(credentials, username);
 	}
 	
 	@PostMapping("@{username}/unfollow")
-	public void unfollowUser(@PathVariable String username) {
-		
+	public void unfollowUser(@RequestBody Credentials credentials, @PathVariable String username) {
+		userService.unfollowUser(credentials, username);
 	}
 	
 	@GetMapping("@{username}/feed")
@@ -78,13 +79,13 @@ public class UserController {
 	}
 	
 	@GetMapping("@{username}/followers")
-	public void getFollowers(@PathVariable String username) {
-		
+	public Set<UserDto> getFollowers(@PathVariable String username) {
+		return userService.getFollowers(username);
 	}
 	
 	@GetMapping("@{username}/following")
-	public void getFollowing(@PathVariable String username) {
-		
+	public Set<UserDto> getFollowing(@PathVariable String username) {
+		return userService.getFollowing(username);
 	}
 	
 }
