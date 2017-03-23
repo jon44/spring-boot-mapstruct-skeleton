@@ -1,22 +1,26 @@
 package cooksys.entity;
 
+import java.sql.Timestamp;
 import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import cooksys.entity.embeddable.Credentials;
 import cooksys.entity.embeddable.Profile;
 
 @Entity
+@Table(name="users")
 public class User {
 	
 	@Id
-	@Column(unique = true, nullable = false)
-	private String username;
+	@GeneratedValue
+	private Long id;
 	
 	@NotNull
 	private Credentials credentials;
@@ -30,7 +34,11 @@ public class User {
 	@ManyToMany
 	private Set<User> following;
 	
-	private Set<Tweet> mentions;
+	@ManyToMany(mappedBy = "mentions")
+	private Set<Tweet> mentioned;
+	
+	@Column(nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	private Timestamp joined;
 	
 	private Boolean deleted;
 	
@@ -38,12 +46,12 @@ public class User {
 		
 	}
 
-	public String getUsername() {
-		return username;
+	public Long getId() {
+		return id;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public Credentials getCredentials() {
@@ -78,12 +86,20 @@ public class User {
 		this.following = following;
 	}
 
-	public Set<Tweet> getMentions() {
-		return mentions;
+	public Set<Tweet> getMentioned() {
+		return mentioned;
 	}
 
-	public void setMentions(Set<Tweet> mentions) {
-		this.mentions = mentions;
+	public void setMentioned(Set<Tweet> mentioned) {
+		this.mentioned = mentioned;
+	}
+	
+	public Timestamp getJoined() {
+		return joined;
+	}
+	
+	public void setJoined(Timestamp joined) {
+		this.joined = joined;
 	}
 
 	public Boolean getDeleted() {
@@ -98,7 +114,7 @@ public class User {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((username == null) ? 0 : username.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
 
@@ -111,10 +127,10 @@ public class User {
 		if (getClass() != obj.getClass())
 			return false;
 		User other = (User) obj;
-		if (username == null) {
-			if (other.username != null)
+		if (id == null) {
+			if (other.id != null)
 				return false;
-		} else if (!username.equals(other.username))
+		} else if (!id.equals(other.id))
 			return false;
 		return true;
 	}

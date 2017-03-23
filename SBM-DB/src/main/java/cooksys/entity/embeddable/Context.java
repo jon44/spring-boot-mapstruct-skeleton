@@ -3,14 +3,17 @@ package cooksys.entity.embeddable;
 import java.util.List;
 
 import javax.persistence.Embeddable;
+import javax.persistence.OneToMany;
 
 import cooksys.entity.Tweet;
 
 @Embeddable
 public class Context {
 
+	@OneToMany
 	private List<Tweet> before;
 	
+	@OneToMany
 	private List<Tweet> after;
 	
 	public Context() {
