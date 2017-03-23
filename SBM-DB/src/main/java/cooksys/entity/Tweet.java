@@ -21,7 +21,6 @@ public class Tweet {
 	@GeneratedValue
 	private Integer id;
 	
-	@NotNull
 	@OneToOne
 	private User author;
 	
