@@ -1,5 +1,6 @@
 package cooksys.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -8,10 +9,12 @@ import org.springframework.stereotype.Service;
 
 import cooksys.dto.TweetDto;
 import cooksys.dto.TweetRequestDto;
+import cooksys.dto.UserDto;
 import cooksys.entity.Tweet;
 import cooksys.entity.User;
 import cooksys.entity.embeddable.Credentials;
 import cooksys.mapper.TweetMapper;
+import cooksys.mapper.UserMapper;
 import cooksys.repository.TweetRepository;
 import cooksys.repository.UserRepository;
 
@@ -22,19 +25,25 @@ public class TweetService {
 	private TweetRepository tweetRepository;
 	private UserRepository userRepository;
 	private TweetMapper tweetMapper;
+	private UserMapper userMapper;
 	private EntityManager entityManager;
 	
-	public TweetService(TweetRepository tweetRepository, UserRepository userRepository, TweetMapper tweetMapper, EntityManager entityManager) {
+	public TweetService(TweetRepository tweetRepository, UserRepository userRepository, TweetMapper tweetMapper, UserMapper userMapper, EntityManager entityManager) {
 		super();
 		this.tweetRepository = tweetRepository;
 		this.userRepository = userRepository;
 		this.tweetMapper = tweetMapper;
+		this.userMapper = userMapper;
 		this.entityManager = entityManager;
 	}
 
 	public TweetDto postTweet(TweetRequestDto tweetRequestDto) {
 		
 		Tweet tweet = tweetMapper.toTweet(tweetRequestDto);
+		User author = tweet.getAuthor();
+		List<Tweet> tweets = author.getTweets();
+		tweets.add(tweet);
+		author.setTweets(tweets);
 		tweet.setDeleted(false);
 		tweet = tweetRepository.save(tweet);
 		entityManager.detach(tweet);
@@ -49,6 +58,10 @@ public class TweetService {
 			if(tweetRepository.existsByIdAndDeleted(id, false)) {
 				Tweet replyTo = tweetRepository.findOne(id);				
 				Tweet tweet = tweetMapper.toTweet(tweetRequestDto);
+				User author = tweet.getAuthor();
+				List<Tweet> tweets = author.getTweets();
+				tweets.add(tweet);
+				author.setTweets(tweets);
 				List<Tweet> replies = replyTo.getReplies();
 				replies.add(tweet);
 				replyTo.setReplies(replies);
@@ -89,7 +102,14 @@ public class TweetService {
 			if(tweetRepository.existsByIdAndDeleted(id, false)) {
 				Tweet tweet = new Tweet();
 				Tweet repostOf = tweetRepository.findOne(id);
+				List<Tweet> reposts = repostOf.getReposts();
+				reposts.add(tweet);
+				repostOf.setReposts(reposts);
 				tweet.setAuthor(userRepository.findByCredentials(credentials));
+				User author = tweet.getAuthor();
+				List<Tweet> tweets = author.getTweets();
+				tweets.add(tweet);
+				author.setTweets(tweets);
 				tweet.setDeleted(false);
 				tweet.setRepostOf(repostOf);
 				tweet.setContent(repostOf.getContent());
@@ -99,6 +119,131 @@ public class TweetService {
 				TweetDto tweetDto = tweetMapper.toRepostTweetDto(tweet);
 				return tweetDto;
 			}
+		}
+		return null;
+	}
+
+	public List<TweetDto> getTweets() {
+		
+		List<Tweet> tweets = tweetRepository.findByDeleted(false);
+		List<Tweet> sortedTweets = new ArrayList<>();
+		List<TweetDto> sortedTweetsDto = new ArrayList<>();
+		
+		tweets
+		.stream()
+		.sorted((tweet1, tweet2) -> tweet2.getPosted()
+                .compareTo(tweet1.getPosted()))
+        .forEach(tweet -> sortedTweets.add(tweet));
+		
+		for(Tweet tweet : sortedTweets) {
+			if(tweet.getIsReplyTo() != null) {
+				sortedTweetsDto.add(tweetMapper.toReplyTweetDto(tweet));
+			} else if(tweet.getRepostOf() != null) {
+				sortedTweetsDto.add(tweetMapper.toRepostTweetDto(tweet));
+			} else {
+				sortedTweetsDto.add(tweetMapper.toSimpleTweetDto(tweet));
+			}
+		}
+		return sortedTweetsDto;
+	}
+
+	public TweetDto deleteTweet(Credentials credentials, Long id) {
+		
+		if(userRepository.existsByCredentials(credentials)) {
+			if(tweetRepository.existsByIdAndDeleted(id, false)) {
+				Tweet tweet = tweetRepository.findOne(id);
+				TweetDto tweetDto = new TweetDto();
+				
+				if(tweet.getIsReplyTo() != null) {
+					tweetDto = tweetMapper.toReplyTweetDto(tweet);
+				} else if(tweet.getRepostOf() != null) {
+					tweetDto = tweetMapper.toRepostTweetDto(tweet);
+				} else {
+					tweetDto = tweetMapper.toSimpleTweetDto(tweet);
+				}
+				
+				tweet.setDeleted(true);
+				tweetRepository.save(tweet);
+				return tweetDto;
+				
+			}
+		}
+		return null;
+	}
+
+	public void likeTweet(Credentials credentials, Long id) {
+		
+		if(userRepository.existsByCredentials(credentials)) {
+			if(tweetRepository.existsByIdAndDeleted(id, false)) {
+				User user = userRepository.findByCredentials(credentials);
+				Tweet tweet = tweetRepository.findOne(id);
+				List<User> likes = tweet.getLikes();
+				likes.add(user);
+				tweet.setLikes(likes);
+				tweet = tweetRepository.save(tweet);
+			}
+		}
+		
+	}
+
+	public List<UserDto> getLikes(Long id) {
+		
+		if(tweetRepository.existsByIdAndDeleted(id, false)) {
+			Tweet tweet = tweetRepository.findOne(id);
+			List<UserDto> userDtos = new ArrayList<>();
+			List<User> likes = tweet.getLikes();
+			
+			for(User i : likes) {
+				userDtos.add(userMapper.toUserDto(i));
+			}
+			return userDtos;
+		}
+		return null;
+	}
+
+	public List<TweetDto> getReplies(Long id) {
+		
+		if(tweetRepository.existsByIdAndDeleted(id, false)) {
+			Tweet tweet = tweetRepository.findOne(id);
+			List<Tweet> tweets = tweet.getReplies();
+			List<TweetDto> tweetsDto = new ArrayList<>();
+			
+			for(Tweet i : tweets) {
+				if(i.isDeleted() == false) {
+					if(i.getIsReplyTo() != null) {
+						tweetsDto.add(tweetMapper.toReplyTweetDto(i));
+					} else if(i.getRepostOf() != null) {
+						tweetsDto.add(tweetMapper.toRepostTweetDto(i));
+					} else {
+						tweetsDto.add(tweetMapper.toSimpleTweetDto(i));
+					}
+				}
+			}
+			return tweetsDto;
+		}
+		return null;
+	}
+
+	public List<TweetDto> getReposts(Long id) {
+		
+		if(tweetRepository.existsByIdAndDeleted(id, false)) {
+			Tweet tweet = tweetRepository.findOne(id);
+			List<Tweet> tweets = tweet.getReposts();
+			List<TweetDto> tweetsDto = new ArrayList<>();
+			
+			for(Tweet i : tweets) {
+				if(i.isDeleted() == false) {
+					if(i.getIsReplyTo() != null) {
+						tweetsDto.add(tweetMapper.toReplyTweetDto(i));
+					} else if(i.getRepostOf() != null) {
+						tweetsDto.add(tweetMapper.toRepostTweetDto(i));
+					} else {
+						tweetsDto.add(tweetMapper.toSimpleTweetDto(i));
+					}
+				}
+
+			}
+			return tweetsDto;
 		}
 		return null;
 	}

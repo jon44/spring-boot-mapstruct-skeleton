@@ -1,5 +1,6 @@
 package cooksys.service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,24 +10,32 @@ import javax.persistence.EntityManager;
 
 import org.springframework.stereotype.Service;
 
+import cooksys.dto.TweetDto;
 import cooksys.dto.UserDto;
 import cooksys.dto.UserRequestDto;
+import cooksys.entity.Tweet;
 import cooksys.entity.User;
 import cooksys.entity.embeddable.Credentials;
+import cooksys.mapper.TweetMapper;
 import cooksys.mapper.UserMapper;
+import cooksys.repository.TweetRepository;
 import cooksys.repository.UserRepository;
 
 @Service
 public class UserService {
 	
 	private UserRepository userRepository;
+	private TweetRepository tweetRepository;
 	private UserMapper userMapper;
+	private TweetMapper tweetMapper;
 	private EntityManager entityManager;
 	
-	public UserService(UserRepository userRepository, UserMapper userMapper, EntityManager entityManager) {
+	public UserService(UserRepository userRepository, TweetRepository tweetRepository, UserMapper userMapper, TweetMapper tweetMapper, EntityManager entityManager) {
         super();
         this.userRepository = userRepository;
+        this.tweetRepository = tweetRepository;
         this.userMapper = userMapper;
+        this.tweetMapper = tweetMapper;
         this.entityManager = entityManager;
     }
 	
@@ -152,6 +161,37 @@ public class UserService {
 			return followingDto;
 		} else {
 			//user does not exist
+		}
+		return null;
+	}
+
+	public List<TweetDto> getTweets(String username) {
+		
+		if(userRepository.existsByCredentialsUsername(username)) {
+			User user = userRepository.findByCredentialsUsername(username);
+			List<Tweet> tweets = user.getTweets();
+			List<TweetDto> tweetsDto = new ArrayList<>();
+			List<TweetDto> sortedTweetsDto = new ArrayList<>();
+			
+			for(Tweet i : tweets) {
+				if(i.isDeleted() == false) {
+					if(i.getIsReplyTo() != null) {
+						tweetsDto.add(tweetMapper.toReplyTweetDto(i));
+					} else if(i.getRepostOf() != null) {
+						tweetsDto.add(tweetMapper.toRepostTweetDto(i));
+					} else {
+						tweetsDto.add(tweetMapper.toSimpleTweetDto(i));
+					}
+				}
+			}
+			
+			tweetsDto
+			.stream()
+			.sorted((tweet1, tweet2) -> tweet2.getPosted()
+	                .compareTo(tweet1.getPosted()))
+	        .forEach(tweet -> sortedTweetsDto.add(tweet));
+			
+			return sortedTweetsDto;
 		}
 		return null;
 	}

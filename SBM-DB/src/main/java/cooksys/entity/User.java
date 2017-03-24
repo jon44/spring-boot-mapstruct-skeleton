@@ -1,6 +1,7 @@
 package cooksys.entity;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -8,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
@@ -36,6 +38,9 @@ public class User {
 	
 	@ManyToMany(mappedBy = "mentions")
 	private Set<Tweet> mentioned;
+	
+	@OneToMany
+	private List<Tweet> tweets;
 	
 	@Column(nullable = false, updatable = false, insertable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private Timestamp joined;
@@ -92,6 +97,14 @@ public class User {
 
 	public void setMentioned(Set<Tweet> mentioned) {
 		this.mentioned = mentioned;
+	}
+	
+	public List<Tweet> getTweets() {
+		return tweets;
+	}
+	
+	public void setTweets(List<Tweet> tweets) {
+		this.tweets = tweets;
 	}
 	
 	public Timestamp getJoined() {

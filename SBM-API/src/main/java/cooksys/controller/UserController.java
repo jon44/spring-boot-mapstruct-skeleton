@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import cooksys.dto.TweetDto;
 import cooksys.dto.UserDto;
 import cooksys.dto.UserRequestDto;
 import cooksys.entity.embeddable.Credentials;
@@ -69,8 +70,8 @@ public class UserController {
 	}
 	
 	@GetMapping("@{username}/tweets")
-	public void getTweets(@PathVariable String username) {
-		
+	public List<TweetDto> getTweets(@PathVariable String username) {
+		return userService.getTweets(username);
 	}
 	
 	@GetMapping("@{username}/mentions")

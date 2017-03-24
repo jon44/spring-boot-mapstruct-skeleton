@@ -1,5 +1,7 @@
 package cooksys.controller;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import cooksys.dto.TweetDto;
 import cooksys.dto.TweetRequestDto;
+import cooksys.dto.UserDto;
 import cooksys.entity.embeddable.Credentials;
 import cooksys.service.TweetService;
 
@@ -25,8 +28,8 @@ public class TweetController {
 	}
 
 	@GetMapping
-	public void getTweets() {
-		
+	public List<TweetDto> getTweets() {
+		return tweetService.getTweets();
 	}
 	
 	@PostMapping
@@ -40,13 +43,13 @@ public class TweetController {
 	}
 	
 	@DeleteMapping("{id}")
-	public void deleteTweet(@PathVariable Long id) {
-		
+	public TweetDto deleteTweet(@RequestBody Credentials credentials, @PathVariable Long id) {
+		return tweetService.deleteTweet(credentials, id);
 	}
 	
 	@PostMapping("{id}/like")
-	public void likeTweet(@PathVariable Long id) {
-		
+	public void likeTweet(@RequestBody Credentials credentials, @PathVariable Long id) {
+		tweetService.likeTweet(credentials, id);
 	}
 	
 	@PostMapping("{id}/reply")
@@ -65,8 +68,8 @@ public class TweetController {
 	}
 	
 	@GetMapping("{id}/likes")
-	public void getLikes(@PathVariable Long id) {
-		
+	public List<UserDto> getLikes(@PathVariable Long id) {
+		return tweetService.getLikes(id);
 	}
 	
 	@GetMapping("{id}/context")
@@ -75,13 +78,13 @@ public class TweetController {
 	}
 	
 	@GetMapping("{id}/replies")
-	public void getReplies(@PathVariable Long id) {
-		
+	public List<TweetDto> getReplies(@PathVariable Long id) {
+		return tweetService.getReplies(id);
 	}
 	
 	@GetMapping("{id}/reposts")
-	public void getReposts(@PathVariable Long id) {
-		
+	public List<TweetDto> getReposts(@PathVariable Long id) {
+		return tweetService.getReposts(id);
 	}
 	
 	@GetMapping("{id}/mentions")
