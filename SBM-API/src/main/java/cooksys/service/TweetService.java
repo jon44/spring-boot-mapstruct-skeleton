@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import cooksys.dto.TweetDto;
 import cooksys.dto.TweetRequestDto;
 import cooksys.entity.Tweet;
+import cooksys.entity.User;
+import cooksys.entity.embeddable.Credentials;
 import cooksys.mapper.TweetMapper;
 import cooksys.repository.TweetRepository;
 import cooksys.repository.UserRepository;
@@ -71,11 +73,31 @@ public class TweetService {
 		if(tweetRepository.existsByIdAndDeleted(id, false)){
 			Tweet tweet = tweetRepository.findOne(id);
 			if(tweet.getIsReplyTo() != null) {
-				
+				return tweetMapper.toReplyTweetDto(tweet);
 			} else if(tweet.getRepostOf() != null) {
-				
+				return tweetMapper.toRepostTweetDto(tweet);
 			} else {
-				
+				return tweetMapper.toSimpleTweetDto(tweet);
+			}
+		}
+		return null;
+	}
+
+	public TweetDto postRepostTweet(Credentials credentials, Long id) {
+		
+		if(userRepository.existsByCredentials(credentials)) {
+			if(tweetRepository.existsByIdAndDeleted(id, false)) {
+				Tweet tweet = new Tweet();
+				Tweet repostOf = tweetRepository.findOne(id);
+				tweet.setAuthor(userRepository.findByCredentials(credentials));
+				tweet.setDeleted(false);
+				tweet.setRepostOf(repostOf);
+				tweet.setContent(repostOf.getContent());
+				tweet = tweetRepository.save(tweet);
+				entityManager.detach(tweet);
+				tweet = tweetRepository.findOne(tweet.getId());
+				TweetDto tweetDto = tweetMapper.toRepostTweetDto(tweet);
+				return tweetDto;
 			}
 		}
 		return null;

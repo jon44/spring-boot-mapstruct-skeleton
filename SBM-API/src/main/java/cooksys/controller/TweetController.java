@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import cooksys.dto.TweetDto;
 import cooksys.dto.TweetRequestDto;
+import cooksys.entity.embeddable.Credentials;
 import cooksys.service.TweetService;
 
 @RestController
@@ -54,8 +55,8 @@ public class TweetController {
 	}
 	
 	@PostMapping("{id}/repost")
-	public void repostTweet(@PathVariable Long id) {
-		
+	public TweetDto repostTweet(@RequestBody Credentials credentials, @PathVariable Long id) {
+		return tweetService.postRepostTweet(credentials, id);
 	}
 	
 	@GetMapping("{id}/tags")

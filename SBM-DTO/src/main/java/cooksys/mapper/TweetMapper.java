@@ -3,6 +3,7 @@ package cooksys.mapper;
 import org.springframework.stereotype.Component;
 
 import cooksys.dto.ReplyTweetDto;
+import cooksys.dto.RepostTweetDto;
 import cooksys.dto.SimpleTweetDto;
 import cooksys.dto.TweetDto;
 import cooksys.dto.TweetRequestDto;
@@ -62,6 +63,17 @@ public class TweetMapper {
 		replyTweetDto.setPosted(tweet.getPosted());
 		replyTweetDto.setContent(tweet.getContent());
 		return replyTweetDto;
+	}
+
+	public RepostTweetDto toRepostTweetDto(Tweet tweet) {
+		RepostTweetDto repostTweetDto = new RepostTweetDto();
+		UserDto userDto = userMapper.toUserDto(tweet.getAuthor());
+		TweetDto tweetDto = toSimpleTweetDto(tweet.getRepostOf());
+		repostTweetDto.setAuthor(userDto);
+		repostTweetDto.setRepostOf(tweetDto);
+		repostTweetDto.setId(tweet.getId().intValue());
+		repostTweetDto.setPosted(tweet.getPosted());
+		return repostTweetDto;
 	}
 	
 }
