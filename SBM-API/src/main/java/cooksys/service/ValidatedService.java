@@ -4,15 +4,18 @@ import org.springframework.stereotype.Service;
 
 import cooksys.entity.User;
 import cooksys.repository.UserRepository;
+import cooksys.repository.ValidatedRepository;
 
 @Service
 public class ValidatedService {
 	
 	private UserRepository userRepository;
+	private ValidatedRepository validatedRepository;
 	
-	public ValidatedService(UserRepository userRepository) {
+	public ValidatedService(UserRepository userRepository, ValidatedRepository validatedRepository) {
 		super();
 		this.userRepository = userRepository;
+		this.validatedRepository = validatedRepository;
 	}
 
 	public boolean usernameExists(String username) {
@@ -31,6 +34,14 @@ public class ValidatedService {
 			return false;
 		}
 		return true;
+	}
+
+	public boolean labelExists(String label) {
+		
+		if(validatedRepository.existsByLabel(label)) {
+			return true;
+		}
+		return false;
 	}
 
 }

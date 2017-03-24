@@ -37,7 +37,7 @@ public class User {
 	private Set<User> following;
 	
 	@ManyToMany(mappedBy = "mentions")
-	private Set<Tweet> mentioned;
+	private List<Tweet> mentioned;
 	
 	@OneToMany
 	private List<Tweet> tweets;
@@ -91,11 +91,11 @@ public class User {
 		this.following = following;
 	}
 
-	public Set<Tweet> getMentioned() {
+	public List<Tweet> getMentioned() {
 		return mentioned;
 	}
 
-	public void setMentioned(Set<Tweet> mentioned) {
+	public void setMentioned(List<Tweet> mentioned) {
 		this.mentioned = mentioned;
 	}
 	

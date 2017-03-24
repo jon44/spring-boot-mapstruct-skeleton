@@ -10,11 +10,13 @@ import org.springframework.stereotype.Service;
 import cooksys.dto.TweetDto;
 import cooksys.dto.TweetRequestDto;
 import cooksys.dto.UserDto;
+import cooksys.entity.Hashtag;
 import cooksys.entity.Tweet;
 import cooksys.entity.User;
 import cooksys.entity.embeddable.Credentials;
 import cooksys.mapper.TweetMapper;
 import cooksys.mapper.UserMapper;
+import cooksys.repository.HashtagRepository;
 import cooksys.repository.TweetRepository;
 import cooksys.repository.UserRepository;
 
@@ -24,14 +26,16 @@ public class TweetService {
 	
 	private TweetRepository tweetRepository;
 	private UserRepository userRepository;
+	private HashtagRepository hashtagRepository;
 	private TweetMapper tweetMapper;
 	private UserMapper userMapper;
 	private EntityManager entityManager;
 	
-	public TweetService(TweetRepository tweetRepository, UserRepository userRepository, TweetMapper tweetMapper, UserMapper userMapper, EntityManager entityManager) {
+	public TweetService(TweetRepository tweetRepository, UserRepository userRepository, HashtagRepository hashtagRepository, TweetMapper tweetMapper, UserMapper userMapper, EntityManager entityManager) {
 		super();
 		this.tweetRepository = tweetRepository;
 		this.userRepository = userRepository;
+		this.hashtagRepository = hashtagRepository;
 		this.tweetMapper = tweetMapper;
 		this.userMapper = userMapper;
 		this.entityManager = entityManager;
@@ -40,6 +44,21 @@ public class TweetService {
 	public TweetDto postTweet(TweetRequestDto tweetRequestDto) {
 		
 		Tweet tweet = tweetMapper.toTweet(tweetRequestDto);
+		List<User> usersMentioned = parseForUsers(tweet.getContent());
+		List<User> mentions = tweet.getMentions();
+		if(mentions == null) {
+			mentions = new ArrayList<>();
+		}
+		for(User i : usersMentioned) {
+			mentions.add(i);
+			List<Tweet> mentioned = i.getMentioned();
+			if(mentioned == null) {
+				mentioned = new ArrayList<>();
+			}
+			mentioned.add(tweet);
+			i.setMentioned(mentioned);
+		}
+		tweet.setMentions(mentions);
 		User author = tweet.getAuthor();
 		List<Tweet> tweets = author.getTweets();
 		tweets.add(tweet);
@@ -58,6 +77,21 @@ public class TweetService {
 			if(tweetRepository.existsByIdAndDeleted(id, false)) {
 				Tweet replyTo = tweetRepository.findOne(id);				
 				Tweet tweet = tweetMapper.toTweet(tweetRequestDto);
+				List<User> usersMentioned = parseForUsers(tweet.getContent());
+				List<User> mentions = tweet.getMentions();
+				if(mentions == null) {
+					mentions = new ArrayList<>();
+				}
+				for(User i : usersMentioned) {
+					mentions.add(i);
+					List<Tweet> mentioned = i.getMentioned();
+					if(mentioned == null) {
+						mentioned = new ArrayList<>();
+					}
+					mentioned.add(tweet);
+					i.setMentioned(mentioned);
+				}
+				tweet.setMentions(mentions);
 				User author = tweet.getAuthor();
 				List<Tweet> tweets = author.getTweets();
 				tweets.add(tweet);
@@ -248,4 +282,60 @@ public class TweetService {
 		return null;
 	}
 	
+	public List<User> parseForUsers(String content) {
+		
+		List<User> mentions = new ArrayList<>();
+		
+		String[] firstSplit = content.split("@");
+		for(String i : firstSplit) {
+			if(i != firstSplit[0]) {
+				String[] secondSplit = i.split(" ");
+				for(String j : secondSplit) {
+					if(j == secondSplit[0]) {
+						if(userRepository.existsByCredentialsUsername(j)) {
+							mentions.add(userRepository.findByCredentialsUsername(j));
+						}
+					}
+				}
+			}
+		}
+		
+		return mentions;
+	}
+	
+	public List<Hashtag> parseForTags(String content) {
+		
+		List<Hashtag> tags = new ArrayList<>();
+		
+		String[] firstSplit = content.split("#");
+		for(String i : firstSplit) {
+			if(i != firstSplit[0]) {
+				String[] secondSplit = i.split(" ");
+				for(String j : secondSplit) {
+					if(j == secondSplit[0]) {
+						if(!hashtagRepository.existsByLabel(j)) {
+							
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public List<UserDto> getMentions(Long id) {
+		
+		Tweet tweet = tweetRepository.findOne(id);
+		List<UserDto> usersDto = new ArrayList<>();
+		List<User> users = tweet.getMentions();
+		if(users == null) {
+			users = new ArrayList<>();
+		}
+		
+		for(User i : users) {
+			usersDto.add(userMapper.toUserDto(i));
+		}
+		
+		return usersDto;
+	}
 }

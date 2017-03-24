@@ -88,8 +88,8 @@ public class TweetController {
 	}
 	
 	@GetMapping("{id}/mentions")
-	public void getMentions(@PathVariable Long id) {
-		
+	public List<UserDto> getMentions(@PathVariable Long id) {
+		return tweetService.getMentions(id);
 	}
 	
 }

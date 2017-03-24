@@ -196,4 +196,18 @@ public class UserService {
 		return null;
 	}
 
+	public List<TweetDto> getMentions(String username) {
+		
+		List<Tweet> tweets = new ArrayList<>();
+		List<TweetDto> tweetsDto = new ArrayList<>();
+		User user = userRepository.findByCredentialsUsername(username);
+		tweets = user.getMentioned();
+		
+		for(Tweet i : tweets) {
+			tweetsDto.add(tweetMapper.toTweetDto(i));
+		}
+		
+		return tweetsDto;
+	}
+
 }
